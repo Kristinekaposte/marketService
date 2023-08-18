@@ -1,0 +1,23 @@
+use customerdb;
+
+DROP TABLE IF EXISTS  customer;
+DROP TABLE IF EXISTS  address;
+
+CREATE TABLE address (
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  phone_number VARCHAR(11) NOT NULL,
+  country VARCHAR(30) NOT NULL,
+  city VARCHAR(30) NOT NULL,
+  postal_code VARCHAR(10) NOT NULL
+);
+CREATE TABLE customer (
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  email VARCHAR(50) NOT NULL UNIQUE,
+  password VARCHAR(64) NOT NULL,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  address_id BIGINT NOT NULL,
+  FOREIGN KEY (address_id) REFERENCES address(id)
+);
+
+

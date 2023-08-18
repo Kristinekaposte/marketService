@@ -1,0 +1,20 @@
+use productsdb;
+
+DROP TABLE IF EXISTS  product;
+DROP TABLE IF EXISTS  category;
+
+CREATE TABLE category (
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  name VARCHAR(125) UNIQUE NOT NULL
+);
+CREATE TABLE products (
+  id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  name VARCHAR(125) NOT NULL,
+  description VARCHAR (255),
+  price DOUBLE NOT NULL,
+  quantity INTEGER NOT NULL,
+  category_id BIGINT NOT NULL,
+  FOREIGN KEY (category_id) REFERENCES category(id)
+);
+
+
