@@ -3,7 +3,6 @@ package com.marketService.orderService.business.repository.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -29,13 +28,13 @@ public class OrderDAO {
     @Column(name = "order_number", nullable = false, length = 40, unique = true)
     private String orderNumber;
 
-    @Column (name = "customer_id", nullable = false)
+    @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
-    @Column (name = "order_date" , nullable = false)
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime orderTime;
 
-    @Column (name = "total_price", nullable = false)
+    @Column(name = "total_price", nullable = false)
     private Double totalPrice;
 
     @OneToMany(mappedBy = "orderDAO", fetch = FetchType.EAGER, cascade = CascadeType.ALL)

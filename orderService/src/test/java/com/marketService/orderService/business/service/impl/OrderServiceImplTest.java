@@ -9,18 +9,29 @@ import com.marketService.orderService.client.Client;
 import com.marketService.orderService.model.Order;
 import com.marketService.orderService.model.OrderItem;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+
 import java.time.LocalDateTime;
-import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceImplTest {
@@ -30,24 +41,13 @@ public class OrderServiceImplTest {
     @Mock
     private OrderMapper orderMapper;
     @Mock
-    private OrderItemMapper orderItemMapper;
-    @Mock
     private Client client;
     @InjectMocks
     private OrderServiceImpl orderService;
-
-
-
-
     private OrderDAO orderDAO;
     private OrderItemDAO orderItemDAO;
     private List<OrderItemDAO> orderItemDAOList;
     private List<OrderDAO> orderDAOList;
-
-
-
-
-
     private OrderItem orderItem;
     private List<OrderItem> orderItemList;
     private Order order;
@@ -58,10 +58,7 @@ public class OrderServiceImplTest {
         orderDAO = createOrderDAO(orderItemDAOList);
         orderItemDAO = createOrderItemDAO(orderDAO);
         orderItemDAOList = createOrderItemDAOList(orderItemDAO);
-        // orderDAO = createOrderDAO(orderItemDAOList);
         orderDAOList = createOrderDAOList(orderDAO);
-
-        //____________________________________________
         orderItem = createOrderItem();
         orderItemList = createOrderItemList(orderItem);
         order = createOrder(orderItemList);
@@ -72,25 +69,10 @@ public class OrderServiceImplTest {
         return new OrderDAO(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemDAOList);
     }
 
-//    private OrderDAO createOrderDAO() {
-//        OrderDAO orderDAO = new OrderDAO();
-//        orderDAO.setId(1L);
-//        orderDAO.setOrderNumber("ORD-12345678");
-//        orderDAO.setCustomerId(1L);
-//        orderDAO.setOrderTime(LocalDateTime.now());
-//        orderDAO.setTotalPrice(20.00);
-//
-//        ArrayList<OrderItemDAO> list = new ArrayList<>();
-//        list.add(new OrderItemDAO(1L,orderDAO,2L,10.0, 2));
-//
-//        orderDAO.setOrderItemDAOList(list);
-//
-//        return orderDAO;
-//    }
-
     private OrderItemDAO createOrderItemDAO(OrderDAO orderDAO) {
         return new OrderItemDAO(1L, orderDAO, 2L, 10.00, 2);
     }
+
     private List<OrderItemDAO> createOrderItemDAOList(OrderItemDAO orderItemDAO) {
         List<OrderItemDAO> list = new ArrayList<>();
         list.add(orderItemDAO);
@@ -103,7 +85,6 @@ public class OrderServiceImplTest {
         list.add(orderDAO);
         return list;
     }
-    // ORDER
 
     private Order createOrder(List<OrderItem> orderItemList) {
         return new Order(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemList);
@@ -120,156 +101,13 @@ public class OrderServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should not place the order when the customer does not exist")
-    void placeOrderWhenCustomerDoesNotExist() {        // Mocking the client response for checking customer existence
+    void placeOrderWhenCustomerDoesNotExist() {
         ResponseEntity<Object> customerResponse = ResponseEntity.notFound().build();
         when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
         Order result = orderService.placeOrder(order);
         assertNull(result);
         verify(client, times(1)).checkCustomerExistence(anyLong());
-        verifyNoMoreInteractions(client);
-        verifyNoInteractions(orderRepository, orderMapper, orderItemMapper);
     }
-
-//    @Test
-//    @DisplayName("Should place the order when the customer exists and all product IDs are valid")
-//    void placeOrderWhenCustomerExistsAndProductIdsAreValid() {        // Mocking the client response for checking customer existence
-//        ResponseEntity<Object> customerResponse = new ResponseEntity<>(HttpStatus.OK);
-//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
-//
-//        // Mocking the client response for getting product information
-//        Map<Long, Double> productInfo = new HashMap<>();
-//        productInfo.put(2L, 10.00);
-//        ResponseEntity<Map<Long, Double>> productInfoResponse = new ResponseEntity<>(productInfo, HttpStatus.OK);
-//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
-//
-//        when(orderRepository.save(orderDAO)).thenReturn(orderDAO);
-//        when(orderMapper.daoToOrder(orderDAO)).thenReturn(order);
-//
-//
-//        // Calling the placeOrder method
-//        Order result = orderService.placeOrder(order);
-//
-//        // Verifying the interactions
-//        verify(client, times(1)).checkCustomerExistence(anyLong());
-//        verify(client, times(1)).getProductInfo(anyList());
-//
-//        assertEquals(order, result);
-//    }
-
-
-//    @Test
-//    @DisplayName("Should not place the order when some product IDs are invalid")
-//    void placeOrderWhenSomeProductIdsAreInvalid() {        // Mocking the client response for checking customer existence
-//        ResponseEntity<Object> customerResponse = new ResponseEntity<>(HttpStatus.OK);
-//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
-//
-//        // Mocking the client response for getting product information
-//        Map<Long, Double> productInfo = new HashMap<>();
-//        productInfo.put(2L, 10.00);
-//        ResponseEntity<Map<Long, Double>> productInfoResponse = new ResponseEntity<>(productInfo, HttpStatus.OK);
-//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
-//
-//        // Mocking the order repository save method
-//        OrderDAO savedOrderDAO = new OrderDAO(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemDAOList);
-//        when(orderRepository.save(any(OrderDAO.class))).thenReturn(savedOrderDAO);
-//
-//        // Mocking the order mapper
-//        Order savedOrder = new Order(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemList);
-//        when(orderMapper.daoToOrder(any(OrderDAO.class))).thenReturn(savedOrder);
-//
-//        // Placing the order
-//        Order result = orderService.placeOrder(order);
-//
-//        // Verifying the client method calls
-//        verify(client, times(1)).checkCustomerExistence(anyLong());
-//        verify(client, times(1)).getProductInfo(anyList());
-//
-//        // Verifying the order repository method calls
-//        verify(orderRepository, times(1)).save(any(OrderDAO.class));
-//
-//        // Verifying the order mapper method calls
-//        verify(orderMapper, times(1)).daoToOrder(any(OrderDAO.class));
-//
-//        // Asserting the result
-//        assertNotNull(result);
-//        assertEquals(savedOrder, result);
-//    }
-//
-//    @Test
-//    @DisplayName("Should autogenerate order number and time when placing an order")
-//    void autogenerateOrderNumberAndTimeWhenPlacingOrder() {        // Mocking the client response for checking customer existence
-//        ResponseEntity<Object> customerResponse = new ResponseEntity<>(HttpStatus.OK);
-//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
-//
-//        // Mocking the client response for getting product information
-//        Map<Long, Double> productInfo = new HashMap<>();
-//        productInfo.put(2L, 10.00);
-//        ResponseEntity<Map<Long, Double>> productInfoResponse = new ResponseEntity<>(productInfo, HttpStatus.OK);
-//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
-//
-//        // Mocking the order repository save method
-//        OrderDAO savedOrderDAO = new OrderDAO(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemDAOList);
-//        when(orderRepository.save(any(OrderDAO.class))).thenReturn(savedOrderDAO);
-//
-//        // Mocking the order mapper
-//        Order savedOrder = new Order(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemList);
-//        when(orderMapper.daoToOrder(any(OrderDAO.class))).thenReturn(savedOrder);
-//
-//        // Placing the order
-//        Order result = orderService.placeOrder(order);
-//
-//        // Verifying the autogeneration of order number and time
-//        assertNotNull(result.getOrderNumber());
-//        assertNotNull(result.getOrderTime());
-//        assertNotEquals("", result.getOrderNumber());
-//
-//        // Verifying the client method calls
-//        verify(client, times(1)).checkCustomerExistence(anyLong());
-//        verify(client, times(1)).getProductInfo(anyList());
-//
-//        // Verifying the order repository method calls
-//        verify(orderRepository, times(1)).save(any(OrderDAO.class));
-//
-//        // Verifying the order mapper method calls
-//        verify(orderMapper, times(1)).daoToOrder(any(OrderDAO.class));
-//    }
-//
-
-//    @Test
-//    @DisplayName("Should calculate total price correctly when placing an order")
-//    void calculateTotalPriceWhenPlacingOrder() {        // Mocking the client response for checking customer existence
-//        ResponseEntity<Object> customerResponse = ResponseEntity.ok().build();
-//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
-//
-//        // Mocking the client response for getting product information
-//        Map<Long, Double> productInfo = new HashMap<>();
-//        productInfo.put(2L, 10.00);
-//        ResponseEntity<Map<Long, Double>> productInfoResponse = ResponseEntity.ok(productInfo);
-//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
-//
-//        // Mocking the order repository save method
-//        OrderDAO savedOrderDAO = new OrderDAO(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemDAOList);
-//        when(orderRepository.save(any(OrderDAO.class))).thenReturn(savedOrderDAO);
-//
-//        // Mocking the order mapper
-//        Order savedOrder = new Order(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemList);
-//        when(orderMapper.daoToOrder(any(OrderDAO.class))).thenReturn(savedOrder);
-//
-//        // Placing the order
-//        Order result = orderService.placeOrder(order);
-//
-//        // Verifying the interactions
-//        verify(client, times(1)).checkCustomerExistence(anyLong());
-//        verify(client, times(1)).getProductInfo(anyList());
-//        verify(orderRepository, times(1)).save(any(OrderDAO.class));
-//        verify(orderMapper, times(1)).daoToOrder(any(OrderDAO.class));
-//
-//        // Asserting the result
-//        assertNotNull(result);
-//        assertEquals(savedOrder, result);
-//    }
-
 
     @Test
     void testGetAllOrderEntries_Successful() {

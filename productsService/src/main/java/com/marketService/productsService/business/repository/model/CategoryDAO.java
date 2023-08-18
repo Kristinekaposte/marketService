@@ -3,7 +3,6 @@ package com.marketService.productsService.business.repository.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,13 +22,10 @@ public class CategoryDAO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(name = "name", nullable = false, length = 125, unique = true)
     private String name;
-
     @OneToMany(mappedBy = "categoryId", cascade = CascadeType.REMOVE)
     private List<ProductDAO> products;
-
     public CategoryDAO(Long id, String name) {
         this.id = id;
         this.name = name;

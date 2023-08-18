@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +31,7 @@ import java.util.Optional;
 @RequestMapping("api/v1/orders")
 @RestController
 public class OrderController {
+
     @Autowired
     private OrderService orderService;
 
@@ -75,7 +75,7 @@ public class OrderController {
     }
 
     @PostMapping("/placeOrder")
-    @CircuitBreaker(name = "OrderService", fallbackMethod ="fallbackMethod" )
+    @CircuitBreaker(name = "OrderService", fallbackMethod = "fallbackMethod")
     @ApiOperation(value = "Place a new order",
             notes = "Creates and places a new order in the DB",
             response = Order.class)
@@ -91,12 +91,12 @@ public class OrderController {
             log.info("Order placed successfully");
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         }
-            log.warn("Order placement failed");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).header(
-                    "Message", "Order placement failed some products does not exist.").build();
+        log.warn("Order placement failed");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).header(
+                "Message", "Order placement failed some products does not exist.").build();
     }
 
-    public ResponseEntity<Order> fallbackMethod (Order order, RuntimeException runtimeException){
+    public ResponseEntity<Order> fallbackMethod(Order order, RuntimeException runtimeException) {
         log.warn("Something went wrong, FallBack was called " + runtimeException.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).header(
                 "Message", "Order placement failed something went wrong. Please try again later.").build();

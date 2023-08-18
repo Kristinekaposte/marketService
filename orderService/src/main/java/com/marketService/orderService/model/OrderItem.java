@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
@@ -17,23 +16,20 @@ import javax.validation.constraints.Positive;
 @AllArgsConstructor
 @Component
 public class OrderItem {
-    @ApiModelProperty(notes = "The unique ID of the order", example = "1")
+    @ApiModelProperty(notes = "The unique ID of the order")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  //  @NotNull(message = "Order ID cannot be null")
-    @ApiModelProperty(notes = "The id of the order", example = "1")
+    @ApiModelProperty(notes = "The id of the order")
     private Long orderId;
 
     @NotNull(message = "Product ID cannot be null")
-    @ApiModelProperty(notes = "The ID of the product", example = "100")
+    @ApiModelProperty(notes = "The ID of the product", example = "1")
     private Long productId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  //  @NotNull(message = "Item price cannot be null")
-   // @Positive(message = "Item price must be a positive number")
-    @ApiModelProperty(notes = "The price of the item", example = "12.50")
+    @ApiModelProperty(notes = "The price of the item")
     private Double itemPrice;
 
     @NotNull(message = "Quantity cannot be null")

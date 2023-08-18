@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import java.util.List;
 import java.util.Map;
 
@@ -14,8 +13,7 @@ import java.util.Map;
 public class Client {
 
     @Autowired
-    private  WebClient webClient;
-
+    private WebClient webClient;
 
     /**
      * Checks if a customer with the given ID exists from CustomerService endpoint.

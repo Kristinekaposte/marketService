@@ -1,4 +1,5 @@
 package com.marketService.productsService.business.repository.model;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,20 +19,14 @@ public class ProductDAO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(name = "name", nullable = false, length = 125)
     private String name;
-
     @Column(name = "description")
     private String description;
-
     @Column(name = "price", nullable = false)
     private Double price;
-
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
-
     @Column(name = "category_id", nullable = false)
     private Long categoryId;
-
 }

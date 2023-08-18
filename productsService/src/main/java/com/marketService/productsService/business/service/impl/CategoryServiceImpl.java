@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +82,7 @@ public class CategoryServiceImpl implements CategoryService {
         Optional<CategoryDAO> optionalCategoryDAO = categoryRepository.findById(id);
         CategoryDAO category = optionalCategoryDAO.get();
         List<ProductDAO> products = category.getProducts();
-        if(products !=null){
+        if (products != null) {
             log.info("Deleting products associated with Category ID: {}", products);
             productRepository.deleteAll(products);
         }

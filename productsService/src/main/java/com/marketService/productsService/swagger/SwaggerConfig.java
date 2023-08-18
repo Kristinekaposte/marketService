@@ -26,14 +26,16 @@ public class SwaggerConfig implements WebMvcConfigurer {
         return appendTags(docket);
 
     }
+
     private Docket appendTags(Docket docket) {
         return docket.tags(
                 new Tag(DescriptionVariables.PRODUCTS,
                         "Used to get, create, edit and delete products"),
-        new Tag(DescriptionVariables.CATEGORY,
-                "Used to get, create, edit and delete category")
-                );
+                new Tag(DescriptionVariables.CATEGORY,
+                        "Used to get, create, edit and delete category")
+        );
     }
+
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("Marker Service API")

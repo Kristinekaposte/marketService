@@ -64,7 +64,7 @@ public class CustomerController {
             @ApiResponse(code = 500, message = "Server error")})
 
     public ResponseEntity<Customer> getCustomerById(@ApiParam(value = "id of the Customer entry", required = true)
-                                                          @PathVariable("id") Long id) {
+                                                    @PathVariable("id") Long id) {
         Optional<Customer> customerOptional = customerService.findCustomerById(id);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
@@ -87,7 +87,7 @@ public class CustomerController {
     public ResponseEntity<?> saveCustomer(@RequestBody @Valid Customer customer) {
         String email = customer.getEmail();
         if (customerService.isEmailExisting(email)) {
-            log.info("The email " + email +" is already registered");
+            log.info("The email " + email + " is already registered");
             return new ResponseEntity<>("Sorry, the email " + email + " is already registered.", HttpStatus.BAD_REQUEST);
         }
         Customer savedCustomer = customerService.saveCustomer(customer);

@@ -8,7 +8,5 @@ import org.mapstruct.Mapper;
 public interface CategoryMapper {
 
     CategoryDAO categoryToDAO (Category category);
-
     Category daoToCategory (CategoryDAO categoryDAO);
-
 }

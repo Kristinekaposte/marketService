@@ -10,13 +10,9 @@ public interface CategoryService {
     List<Category> getAllCategories();
     Optional<Category> findCategoryById(Long id);
     Category saveCategory(Category category);
-
     Category editCategory(Long id, Category category);
-
     @Transactional
     void deleteCategoryById(Long id);
-
     boolean isCategoryNameExisting(String name);
-
     boolean isCategoryPresent(Long id);
 }

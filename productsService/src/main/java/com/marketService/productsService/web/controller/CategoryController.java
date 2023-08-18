@@ -87,7 +87,7 @@ public class CategoryController {
     public ResponseEntity<?> saveCategory(@RequestBody @Valid Category category) {
         String categoryName = category.getName();
         if (categoryService.isCategoryNameExisting(categoryName)) {
-            log.info("The Category name " + categoryName +" is already registered");
+            log.info("The Category name " + categoryName + " is already registered");
             return new ResponseEntity<>("Sorry, the category name " + categoryName + " is already registered.", HttpStatus.BAD_REQUEST);
         }
         Category savedCategory = categoryService.saveCategory(category);
@@ -112,7 +112,7 @@ public class CategoryController {
         }
         String categoryName = updatedCategory.getName();
         if (categoryService.isCategoryNameExisting(categoryName)) {
-            log.info("The Category name " + categoryName +" is already registered");
+            log.info("The Category name " + categoryName + " is already registered");
             return new ResponseEntity<>("Sorry, the category name " + categoryName + " is already registered.", HttpStatus.BAD_REQUEST);
         }
         Category editedCategory = categoryService.editCategory(id, updatedCategory);

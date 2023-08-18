@@ -81,7 +81,6 @@ public class OrderServiceImpl implements OrderService {
         return null;
     }
 
-
     /**
      * Extracts the productIds from the order's orderItems.
      *
