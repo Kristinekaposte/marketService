@@ -14,18 +14,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -41,13 +46,24 @@ public class OrderServiceImplTest {
     @Mock
     private OrderMapper orderMapper;
     @Mock
+    private OrderItemMapper orderItemMapper;
+    @Mock
     private Client client;
     @InjectMocks
     private OrderServiceImpl orderService;
+
+
+
+
     private OrderDAO orderDAO;
     private OrderItemDAO orderItemDAO;
     private List<OrderItemDAO> orderItemDAOList;
     private List<OrderDAO> orderDAOList;
+
+
+
+
+
     private OrderItem orderItem;
     private List<OrderItem> orderItemList;
     private Order order;
@@ -58,7 +74,10 @@ public class OrderServiceImplTest {
         orderDAO = createOrderDAO(orderItemDAOList);
         orderItemDAO = createOrderItemDAO(orderDAO);
         orderItemDAOList = createOrderItemDAOList(orderItemDAO);
+        // orderDAO = createOrderDAO(orderItemDAOList);
         orderDAOList = createOrderDAOList(orderDAO);
+
+        //____________________________________________
         orderItem = createOrderItem();
         orderItemList = createOrderItemList(orderItem);
         order = createOrder(orderItemList);
@@ -69,10 +88,25 @@ public class OrderServiceImplTest {
         return new OrderDAO(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemDAOList);
     }
 
+//    private OrderDAO createOrderDAO() {
+//        OrderDAO orderDAO = new OrderDAO();
+//        orderDAO.setId(1L);
+//        orderDAO.setOrderNumber("ORD-12345678");
+//        orderDAO.setCustomerId(1L);
+//        orderDAO.setOrderTime(LocalDateTime.now());
+//        orderDAO.setTotalPrice(20.00);
+//
+//        ArrayList<OrderItemDAO> list = new ArrayList<>();
+//        list.add(new OrderItemDAO(1L,orderDAO,2L,10.0, 2));
+//
+//        orderDAO.setOrderItemDAOList(list);
+//
+//        return orderDAO;
+//    }
+
     private OrderItemDAO createOrderItemDAO(OrderDAO orderDAO) {
         return new OrderItemDAO(1L, orderDAO, 2L, 10.00, 2);
     }
-
     private List<OrderItemDAO> createOrderItemDAOList(OrderItemDAO orderItemDAO) {
         List<OrderItemDAO> list = new ArrayList<>();
         list.add(orderItemDAO);
@@ -85,6 +119,7 @@ public class OrderServiceImplTest {
         list.add(orderDAO);
         return list;
     }
+    // ORDER
 
     private Order createOrder(List<OrderItem> orderItemList) {
         return new Order(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemList);
@@ -108,6 +143,49 @@ public class OrderServiceImplTest {
         assertNull(result);
         verify(client, times(1)).checkCustomerExistence(anyLong());
     }
+
+//    @Test
+//    void testPlaceOrder_WhenCustomerExists_AndProductIdsAreValid() {
+//        ResponseEntity<Object> customerResponse = new ResponseEntity<>(HttpStatus.OK);
+//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
+
+//        Map<Long, Double> productInfo = new HashMap<>();
+//        productInfo.put(2L, 10.00);
+//        ResponseEntity<Map<Long, Double>> productInfoResponse = new ResponseEntity<>(productInfo, HttpStatus.OK);
+//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
+//
+//        when(orderRepository.save(orderDAO)).thenReturn(orderDAO);
+//        when(orderMapper.daoToOrder(orderDAO)).thenReturn(order);
+
+//        Order result = orderService.placeOrder(order);
+//        assertEquals(order, result);
+//    }
+
+//    @Test
+//    void testPlaceOrder_WhenCustomerExists_AndProductIdsAreValid() {
+//        ResponseEntity<Object> customerResponse = new ResponseEntity<>(HttpStatus.OK);
+//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
+//
+//        Map<Long, Double> productInfo = new HashMap<>();
+//        productInfo.put(2L, 10.00);
+//        ResponseEntity<Map<Long, Double>> productInfoResponse = new ResponseEntity<>(productInfo, HttpStatus.OK);
+//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
+//
+//        OrderItem orderItem1 = createOrderItem();
+//        List<OrderItem> orderItemList1 = createOrderItemList(orderItem1);
+//        Order order1 = createOrder(orderItemList1);
+//        System.out.println("order1: " + order1);
+//
+//        OrderDAO orderDAO1 = orderMapper.orderToDAO(order1);
+//        System.out.println("orderDAO1: " + orderDAO1); // null?
+//
+//        when(orderRepository.save(orderDAO1)).thenReturn(orderDAO1);
+//        when(orderMapper.daoToOrder(orderDAO1)).thenReturn(order1);
+//
+//        Order result = orderService.placeOrder(order1);
+//
+//        assertEquals(order1, result);
+//    }
 
     @Test
     void testGetAllOrderEntries_Successful() {
