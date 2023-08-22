@@ -1,6 +1,5 @@
 package com.marketService.orderService.business.service.impl;
 
-import com.marketService.orderService.business.mappers.OrderItemMapper;
 import com.marketService.orderService.business.mappers.OrderMapper;
 import com.marketService.orderService.business.repository.OrderRepository;
 import com.marketService.orderService.business.repository.model.OrderDAO;
@@ -16,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,146 +43,20 @@ public class OrderServiceImplTest {
     @Mock
     private OrderMapper orderMapper;
     @Mock
-    private OrderItemMapper orderItemMapper;
-    @Mock
     private Client client;
     @InjectMocks
     private OrderServiceImpl orderService;
 
-
-
-
     private OrderDAO orderDAO;
-    private OrderItemDAO orderItemDAO;
-    private List<OrderItemDAO> orderItemDAOList;
     private List<OrderDAO> orderDAOList;
-
-
-
-
-
-    private OrderItem orderItem;
-    private List<OrderItem> orderItemList;
     private Order order;
-
 
     @BeforeEach
     public void init() {
-        orderDAO = createOrderDAO(orderItemDAOList);
-        orderItemDAO = createOrderItemDAO(orderDAO);
-        orderItemDAOList = createOrderItemDAOList(orderItemDAO);
-        // orderDAO = createOrderDAO(orderItemDAOList);
+        orderDAO = createOrderDAO();
         orderDAOList = createOrderDAOList(orderDAO);
-
-        //____________________________________________
-        orderItem = createOrderItem();
-        orderItemList = createOrderItemList(orderItem);
-        order = createOrder(orderItemList);
-
+        order = createOrder();
     }
-
-    private OrderDAO createOrderDAO(List<OrderItemDAO> orderItemDAOList) {
-        return new OrderDAO(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemDAOList);
-    }
-
-//    private OrderDAO createOrderDAO() {
-//        OrderDAO orderDAO = new OrderDAO();
-//        orderDAO.setId(1L);
-//        orderDAO.setOrderNumber("ORD-12345678");
-//        orderDAO.setCustomerId(1L);
-//        orderDAO.setOrderTime(LocalDateTime.now());
-//        orderDAO.setTotalPrice(20.00);
-//
-//        ArrayList<OrderItemDAO> list = new ArrayList<>();
-//        list.add(new OrderItemDAO(1L,orderDAO,2L,10.0, 2));
-//
-//        orderDAO.setOrderItemDAOList(list);
-//
-//        return orderDAO;
-//    }
-
-    private OrderItemDAO createOrderItemDAO(OrderDAO orderDAO) {
-        return new OrderItemDAO(1L, orderDAO, 2L, 10.00, 2);
-    }
-    private List<OrderItemDAO> createOrderItemDAOList(OrderItemDAO orderItemDAO) {
-        List<OrderItemDAO> list = new ArrayList<>();
-        list.add(orderItemDAO);
-        return list;
-    }
-
-    private List<OrderDAO> createOrderDAOList(OrderDAO orderDAO) {
-        List<OrderDAO> list = new ArrayList<>();
-        list.add(orderDAO);
-        list.add(orderDAO);
-        return list;
-    }
-    // ORDER
-
-    private Order createOrder(List<OrderItem> orderItemList) {
-        return new Order(1L, "ORD-12345678", 1L, LocalDateTime.now(), 20.00, orderItemList);
-    }
-
-    private OrderItem createOrderItem() {
-        return new OrderItem(1L, 1L, 2L, 10.00, 2);
-    }
-
-    private List<OrderItem> createOrderItemList(OrderItem orderItem) {
-        List<OrderItem> list = new ArrayList<>();
-        list.add(orderItem);
-        return list;
-    }
-
-    @Test
-    void placeOrderWhenCustomerDoesNotExist() {
-        ResponseEntity<Object> customerResponse = ResponseEntity.notFound().build();
-        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
-        Order result = orderService.placeOrder(order);
-        assertNull(result);
-        verify(client, times(1)).checkCustomerExistence(anyLong());
-    }
-
-//    @Test
-//    void testPlaceOrder_WhenCustomerExists_AndProductIdsAreValid() {
-//        ResponseEntity<Object> customerResponse = new ResponseEntity<>(HttpStatus.OK);
-//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
-
-//        Map<Long, Double> productInfo = new HashMap<>();
-//        productInfo.put(2L, 10.00);
-//        ResponseEntity<Map<Long, Double>> productInfoResponse = new ResponseEntity<>(productInfo, HttpStatus.OK);
-//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
-//
-//        when(orderRepository.save(orderDAO)).thenReturn(orderDAO);
-//        when(orderMapper.daoToOrder(orderDAO)).thenReturn(order);
-
-//        Order result = orderService.placeOrder(order);
-//        assertEquals(order, result);
-//    }
-
-//    @Test
-//    void testPlaceOrder_WhenCustomerExists_AndProductIdsAreValid() {
-//        ResponseEntity<Object> customerResponse = new ResponseEntity<>(HttpStatus.OK);
-//        when(client.checkCustomerExistence(anyLong())).thenReturn(customerResponse);
-//
-//        Map<Long, Double> productInfo = new HashMap<>();
-//        productInfo.put(2L, 10.00);
-//        ResponseEntity<Map<Long, Double>> productInfoResponse = new ResponseEntity<>(productInfo, HttpStatus.OK);
-//        when(client.getProductInfo(anyList())).thenReturn(productInfoResponse);
-//
-//        OrderItem orderItem1 = createOrderItem();
-//        List<OrderItem> orderItemList1 = createOrderItemList(orderItem1);
-//        Order order1 = createOrder(orderItemList1);
-//        System.out.println("order1: " + order1);
-//
-//        OrderDAO orderDAO1 = orderMapper.orderToDAO(order1);
-//        System.out.println("orderDAO1: " + orderDAO1); // null?
-//
-//        when(orderRepository.save(orderDAO1)).thenReturn(orderDAO1);
-//        when(orderMapper.daoToOrder(orderDAO1)).thenReturn(order1);
-//
-//        Order result = orderService.placeOrder(order1);
-//
-//        assertEquals(order1, result);
-//    }
 
     @Test
     void testGetAllOrderEntries_Successful() {
@@ -222,5 +93,69 @@ public class OrderServiceImplTest {
         Optional<Order> result = orderService.findOrderByOrderNumber("ORD-number12");
         assertFalse(result.isPresent());
         verify(orderRepository, times(1)).findByOrderNumber(anyString());
+    }
+
+    @Test
+    void testPlaceOrder_WhenCustomerAndAllProductsExist_ThenOrderIsPlaced_Successful() {
+        Map<Long, Double> productInfo = new HashMap<>();
+        productInfo.put(1L, 5.0);
+        when(client.checkCustomerExistence(anyLong())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(client.getProductInfo(anyList())).thenReturn(new ResponseEntity<>(productInfo, HttpStatus.OK));
+        when(orderMapper.orderToDAO(any(Order.class))).thenReturn(new OrderDAO());
+        when(orderMapper.daoToOrder(any(OrderDAO.class))).thenReturn(order);
+        when(orderRepository.save(any(OrderDAO.class))).thenReturn(new OrderDAO());
+        Order result = orderService.placeOrder(order);
+        assertEquals(order, result);
+        verify(orderRepository, times(1)).save(any(OrderDAO.class));
+    }
+
+    @Test
+    void testPlaceOrder_WhenCustomerDoesNotExist_Failed() {
+        Order order = new Order();
+        order.setCustomerId(1L);
+        when(client.checkCustomerExistence(anyLong())).thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        Order result = orderService.placeOrder(order);
+        assertNull(result);
+        verify(client, times(1)).checkCustomerExistence(anyLong());
+    }
+
+    @Test
+    void testPlaceOrder_WhenSomeProductsNotExist_Failed() {
+        Order order = new Order();
+        order.setCustomerId(1L);
+        order.setOrderItems(Collections.singletonList(new OrderItem()));
+        Map<Long, Double> productInfo = new HashMap<>();
+        when(client.checkCustomerExistence(anyLong())).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+        when(client.getProductInfo(anyList())).thenReturn(new ResponseEntity<>(productInfo, HttpStatus.OK));
+        Order result = orderService.placeOrder(order);
+        assertNull(result);
+    }
+
+    @Test
+    void testSetOrderDAOForOrderItemsWhenOrderDAOAndProductInfoProvided_Successful() {
+        Map<Long, Double> productInfo = new HashMap<>();
+        productInfo.put(1L, 5.0);
+        OrderItemDAO orderItemDAO = new OrderItemDAO(1L, orderDAO, 1L, 5.0, 1);
+        orderDAO.setOrderItemDAOList(Collections.singletonList(orderItemDAO));
+        orderService.setOrderDAOForOrderItems(orderDAO, productInfo);
+        assertEquals(orderDAO, orderDAO.getOrderItemDAOList().get(0).getOrderDAO());
+        assertEquals(productInfo.get(1L), orderDAO.getOrderItemDAOList().get(0).getItemPrice());
+    }
+
+    private OrderDAO createOrderDAO() {
+        return new OrderDAO(1L, "ORD-12345678", 1L, LocalDateTime.of(2000, 10, 20, 14, 44, 55), 20.00, new ArrayList<>());
+    }
+
+
+    private List<OrderDAO> createOrderDAOList(OrderDAO orderDAO) {
+        List<OrderDAO> list = new ArrayList<>();
+        list.add(orderDAO);
+        list.add(orderDAO);
+        return list;
+    }
+
+    private Order createOrder() {
+        return new Order(1L, "ORD-12345678", 1L, LocalDateTime.of(2000, 10, 20, 14, 44, 55),
+                5.00, Collections.singletonList(new OrderItem(1L, 1L, 1L, 5.00, 1)));
     }
 }

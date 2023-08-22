@@ -62,12 +62,9 @@ public class OrderServiceImpl implements OrderService {
         if (customerResponse.getStatusCode() == HttpStatus.OK) {
             List<Long> productIds = getProductIds(order);
             ResponseEntity<Map<Long, Double>> productInfoResponse = client.getProductInfo(productIds);
-
             if (productInfoResponse.getStatusCode() == HttpStatus.OK) {
                 Map<Long, Double> productInfo = productInfoResponse.getBody();
                 if (productInfo.keySet().containsAll(productIds)) {
-
-
                     OrderDAO orderDAO = createOrderDAO(order, productInfo);
                     setOrderDAOForOrderItems(orderDAO, productInfo);
                     calculateOrderTotalPrice(order, orderDAO, productInfo);
@@ -116,9 +113,11 @@ public class OrderServiceImpl implements OrderService {
      * @param orderDAO The OrderDAO object to which to set OrderItemDAOs.
      */
 
+
     public void setOrderDAOForOrderItems(OrderDAO orderDAO, Map<Long, Double> productInfo) {
         if (orderDAO.getOrderItemDAOList() != null) {
             orderDAO.getOrderItemDAOList().forEach(item -> {
+                log.info("Setting orderDAO for OrderItemDAO: {}", item.getId());
                 item.setOrderDAO(orderDAO);
                 item.setItemPrice(productInfo.get(item.getProductId()));
             });
