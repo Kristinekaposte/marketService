@@ -30,10 +30,11 @@ public class Client {
     }
 
     /**
-     * Checks the existence of the productIds in the products service.
+     * Retrieves products information from the products service,by sending an asynchronous HTTP GET request using WebClient.
+     * Response is retrieved and converted to a Map<Long, Double>
      *
      * @param productIds The list of productIds to check.
-     * @return A ResponseEntity containing the list of existing productIds.
+     * @return A ResponseEntity containing the list of existing productIds and prices.
      */
     public ResponseEntity<Map<Long, Double>> getProductInfo(List<Long> productIds) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString("http://localhost:5051/api/v1/products/getProductInfo")
@@ -46,5 +47,4 @@ public class Client {
                 })
                 .block();
     }
-
 }

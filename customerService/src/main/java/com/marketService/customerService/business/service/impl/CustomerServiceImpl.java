@@ -63,10 +63,10 @@ public class CustomerServiceImpl implements CustomerService {
     /**
      * Method is running within a transaction.It ensures that the method is executed as a single unit,
      * and if any part of the method fails, the entire transaction is rolled back.
-     * <p>
+     *
      * Update is happening only in URL providing id,
-     * addressDAO id in customerDAO table is ignored and will not be changed  because of OneToMany rel.
-     * id - in customerDAO and addressDAO table are ignored to avoid mismatched id's is request body
+     * addressDAO id in customerDAO table is ignored at request and will not be changed  because of OneToOne rel.
+     * id - in customerDAO and addressDAO table are ignored at request to avoid mismatched id's is request body
      */
     @Override
     @Transactional

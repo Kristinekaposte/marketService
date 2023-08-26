@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
@@ -68,7 +69,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void getAllOrders_Successful() throws Exception {
+    void testGetAllOrders_Successful() throws Exception {
         when(orderService.getAllOrders()).thenReturn(orderListResponse);
         mockMvc.perform(get(URL1))
                 .andExpect(status().isOk())
@@ -83,7 +84,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void getOrderByOrderNumber_OrderNumberExists_Successful() throws Exception {
+    void testGetOrderByOrderNumber_OrderNumberExists_Successful() throws Exception {
         when(orderService.findOrderByOrderNumber("ORD12345678")).thenReturn(Optional.of(orderResponse));
         mockMvc.perform(get(URL2 + "/{orderNumber}", "ORD12345678"))
                 .andExpect(status().isOk())
@@ -98,7 +99,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void getAllOrders_WhenListEmpty_Successful() throws Exception {
+    void testGetAllOrders_WhenListEmpty_Successful() throws Exception {
         when(orderService.getAllOrders()).thenReturn(Collections.emptyList());
         mockMvc.perform(get(URL1))
                 .andExpect(status().isOk())
@@ -108,7 +109,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void getOrderByOrderNumber_OrderNumberDoesNotExist_UnSuccessful() throws Exception {
+    void testGetOrderByOrderNumber_OrderNumberDoesNotExist_UnSuccessful() throws Exception {
         String orderNumber = "ORD12345";
         when(orderService.findOrderByOrderNumber(orderNumber)).thenReturn(Optional.empty());
         mockMvc.perform(get(URL2 + "/{orderNumber}", orderNumber))
@@ -118,7 +119,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void placeOrder_Successful() throws Exception {
+    void testPlaceOrder_Successful() throws Exception {
         when(orderService.placeOrder(any())).thenReturn(orderRequest);
         mockMvc.perform(post(URL3)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -130,7 +131,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void placeOrder_WhenSomeProductsDoNotExist_UnSuccessful() throws Exception {
+    void testPlaceOrder_WhenSomeProductsDoNotExist_UnSuccessful() throws Exception {
         when(orderService.placeOrder(orderRequestEmptyOrderItemsList)).thenReturn(null);
         mockMvc.perform(post(URL3)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -142,7 +143,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void placeOrder_WhenExceptionOccurs_FallbackMethodIsCalled_UnSuccessful() throws Exception {
+    void testPlaceOrder_WhenExceptionOccurs_FallbackMethodIsCalled_UnSuccessful() throws Exception {
         when(orderService.placeOrder(any(Order.class))).thenThrow(new RuntimeException("Something went wrong"));
         mockMvc.perform(post(URL3)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -150,6 +151,19 @@ public class OrderControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(header().string("Message", "Order placement failed something went wrong. Please try again later."))
                 .andReturn();
+    }
+
+    @Test
+    void testPlaceOrder_ValidationFailure_Unsuccessful() throws Exception {
+        Order orderEmpty = new Order();
+        mockMvc.perform(
+                        post(URL3)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(orderEmpty)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.message").value("Validation failed"));
     }
 
     private Order createOrderResponse(List<OrderItem> orderItemList) {

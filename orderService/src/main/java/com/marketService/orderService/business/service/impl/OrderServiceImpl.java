@@ -87,7 +87,7 @@ public class OrderServiceImpl implements OrderService {
      * @param order The order from which to extract product IDs.
      * @return List of productIds.
      */
-    public List<Long> getProductIds(Order order) {
+    private List<Long> getProductIds(Order order) {
         return order.getOrderItems().stream()
                 .map(OrderItem::getProductId)
                 .collect(Collectors.toList());
@@ -100,7 +100,7 @@ public class OrderServiceImpl implements OrderService {
      * @return The created OrderDAO object.
      */
 
-    public OrderDAO createOrderDAO(Order order, Map<Long, Double> productInfo) {
+    private OrderDAO createOrderDAO(Order order, Map<Long, Double> productInfo) {
         OrderDAO orderDAO = orderMapper.orderToDAO(order);
         setOrderDAOForOrderItems(orderDAO, productInfo);
         return orderDAO;
@@ -114,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
      */
 
 
-    public void setOrderDAOForOrderItems(OrderDAO orderDAO, Map<Long, Double> productInfo) {
+    protected void setOrderDAOForOrderItems(OrderDAO orderDAO, Map<Long, Double> productInfo) {
         if (orderDAO.getOrderItemDAOList() != null) {
             orderDAO.getOrderItemDAOList().forEach(item -> {
                 log.info("Setting orderDAO for OrderItemDAO: {}", item.getId());
@@ -130,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderDAO The OrderDAO object to be saved.
      * @return The Order object after saving.
      */
-    public Order saveOrder(OrderDAO orderDAO) {
+    private Order saveOrder(OrderDAO orderDAO) {
         return orderMapper.daoToOrder(orderRepository.save(orderDAO));
     }
 
@@ -140,7 +140,7 @@ public class OrderServiceImpl implements OrderService {
      * @param productIds       The list of productIds that were not found.
      * @param existingProducts The list of existing productIds.
      */
-    public void handleMissingProducts(List<Long> productIds, List<Long> existingProducts) {
+    private void handleMissingProducts(List<Long> productIds, List<Long> existingProducts) {
         List<Long> missingProducts = new ArrayList<>(productIds);
         missingProducts.removeAll(existingProducts);
         log.warn("COULD NOT PLACE ORDER, SOME PRODUCTS ID'S DON'T EXIST: {}", missingProducts);
@@ -151,7 +151,7 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param order Order object for which to generate the OrderNumber.
      */
-    public void autogenerateOrderNumber(Order order) {
+    private void autogenerateOrderNumber(Order order) {
         String orderNumber = "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         order.setOrderNumber(orderNumber);
     }
@@ -161,7 +161,7 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param order The Order object for which to set the OrderTime.
      */
-    public void autogenerateOrderTime(Order order) {
+    private void autogenerateOrderTime(Order order) {
         order.setOrderTime(LocalDateTime.now());
     }
 
@@ -173,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
      * @param orderDAO OrderDAO in which to set the calculated total price.
      */
 
-    public void calculateOrderTotalPrice(Order order, OrderDAO orderDAO, Map<Long, Double> productInfo) {
+    private void calculateOrderTotalPrice(Order order, OrderDAO orderDAO, Map<Long, Double> productInfo) {
         double totalPrice = order.getOrderItems().stream()
                 .mapToDouble(item -> productInfo.get(item.getProductId()) * item.getQuantity())
                 .sum();
