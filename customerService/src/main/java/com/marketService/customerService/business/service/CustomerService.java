@@ -9,6 +9,8 @@ public interface CustomerService {
 
     Optional<Customer> findCustomerById(Long id);
 
+    Optional<Customer> findByEmail(String email);
+
     Customer saveCustomer(Customer customer);
 
     Customer editCustomerById(Long id, Customer updatedCustomer);

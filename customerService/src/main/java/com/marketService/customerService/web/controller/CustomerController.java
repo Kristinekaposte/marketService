@@ -60,6 +60,7 @@ public class CustomerController {
             response = Customer.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "The request has succeeded"),
+            @ApiResponse(code = 401, message = "Unauthorized - Customer is not authorized to access this resource"),
             @ApiResponse(code = 404, message = "The server has not found anything matching the Request-URI"),
             @ApiResponse(code = 500, message = "Server error")})
 

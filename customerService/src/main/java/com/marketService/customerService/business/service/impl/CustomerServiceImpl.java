@@ -10,6 +10,7 @@ import com.marketService.customerService.model.Customer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
@@ -25,6 +26,7 @@ public class CustomerServiceImpl implements CustomerService {
     private CustomerMapper customerMapper;
     @Autowired
     private AddressMapper addressMapper;
+   private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public List<Customer> getAllCustomers() {
@@ -48,8 +50,20 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public Optional<Customer> findByEmail(String email) {
+        Optional<CustomerDAO> customerDAO = customerRepository.findByEmail(email);
+        if (!customerDAO.isPresent()) {
+            log.info("Customer with email {} does not exist.", email);
+            return Optional.empty();
+        }
+        log.info("Customer with email {} found.", email);
+        return customerDAO.map(customerMapper::daoToCustomer);
+    }
+
+    @Override
     @Transactional
     public Customer saveCustomer(Customer customer) {
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
         CustomerDAO newCustomerDAO = customerMapper.customerToDAO(customer);
         newCustomerDAO = customerRepository.save(newCustomerDAO);
         if (newCustomerDAO != null) {
@@ -77,6 +91,7 @@ public class CustomerServiceImpl implements CustomerService {
             AddressDAO existingAddressDAO = existingCustomerDAO.getAddressDAO();
             AddressDAO updatedAddressDAO = addressMapper.addressToDAO(updatedCustomer.getAddress());
             BeanUtils.copyProperties(updatedAddressDAO, existingAddressDAO, "id");
+            existingCustomerDAO.setPassword(passwordEncoder.encode(updatedCustomer.getPassword()));
             Customer updatedCustomerObject = customerMapper.daoToCustomer(customerRepository.save(existingCustomerDAO));
             log.info("Updated customer details: {}", updatedCustomerObject);
             return updatedCustomerObject;
