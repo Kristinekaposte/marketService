@@ -22,7 +22,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @Data
 @Slf4j
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class CustomUserDetailsServiceImpl implements UserDetailsService {
 
     @Autowired
     private CustomerService customerService;
@@ -36,14 +36,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
         log.info("User found with email: {}", email);
-        // Using simple authority because you don't have any roles,
-        // so "ROLE_USER" will be authority for all users
+        // Using simple authority because i don't have any roles in table,
+        // so "USER" will be authority for all customers
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
         Customer customer = customerOptional.get();
         log.info("Creating UserDetails for user: {}", email);
         return new User(
-                customer.getEmail(), customer.getPassword(), authorities
+                customer.getEmail(),
+                customer.getPassword(),
+                true,
+                true,
+                true,
+                true,
+                authorities
         );
     }
-
 }
