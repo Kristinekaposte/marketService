@@ -26,7 +26,7 @@ public class CustomerServiceImpl implements CustomerService {
     private CustomerMapper customerMapper;
     @Autowired
     private AddressMapper addressMapper;
-   private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public List<Customer> getAllCustomers() {
@@ -99,6 +99,9 @@ public class CustomerServiceImpl implements CustomerService {
         log.warn("Customer with ID {} not found for updating.", id);
         return null;
     }
+
+
+
 
     @Transactional
     @Override

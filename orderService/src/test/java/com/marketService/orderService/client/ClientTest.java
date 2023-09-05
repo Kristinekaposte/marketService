@@ -75,9 +75,7 @@ public class ClientTest {
         mockResponse.put(1L, 10.0);
         mockResponse.put(2L, 20.0);
         ResponseEntity<Map<Long, Double>> responseEntity = ResponseEntity.ok(mockResponse);
-        doReturn(Mono.just(responseEntity)).when(responseSpec).toEntity(
-                ArgumentMatchers.<ParameterizedTypeReference<Map<Long, Double>>>any()
-        );
+        doReturn(Mono.just(responseEntity)).when(responseSpec).toEntity(ArgumentMatchers.<ParameterizedTypeReference<Map<Long, Double>>>any());
         List<Long> productIds = Arrays.asList(1L, 2L);
         ResponseEntity<Map<Long, Double>> response = client.getProductInfo(productIds);
         assertNotNull(response);
@@ -91,15 +89,11 @@ public class ClientTest {
         doReturn(headersSpec).when(uriSpec).uri(anyString());
         doReturn(responseSpec).when(headersSpec).retrieve();
         ResponseEntity<Map<Long, Double>> responseEntity = ResponseEntity.ok(Collections.emptyMap());
-        doReturn(Mono.just(responseEntity)).when(responseSpec).toEntity(
-                ArgumentMatchers.<ParameterizedTypeReference<Map<Long, Double>>>any()
-        );
+        doReturn(Mono.just(responseEntity)).when(responseSpec).toEntity(ArgumentMatchers.<ParameterizedTypeReference<Map<Long, Double>>>any());
         List<Long> emptyProductIds = Collections.emptyList();
         ResponseEntity<Map<Long, Double>> response = client.getProductInfo(emptyProductIds);
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(Collections.emptyMap(), response.getBody());
     }
-
-
 }

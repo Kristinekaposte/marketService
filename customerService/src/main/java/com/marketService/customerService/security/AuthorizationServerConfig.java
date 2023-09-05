@@ -72,7 +72,7 @@ public class AuthorizationServerConfig {
         http
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .antMatchers("/","/api/v1/customer/save").permitAll() // Allows unauthenticated access
+                                .antMatchers("/","/api/v1/customer/save", "/api/v1/customer/getById/{id}").permitAll() // Allows unauthenticated access
                                 .antMatchers("/api/v1/customer/**").hasAuthority("USER") // Require authority for other endpoints
                                 .anyRequest()
                                 .authenticated()

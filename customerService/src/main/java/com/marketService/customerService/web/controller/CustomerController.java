@@ -95,7 +95,7 @@ public class CustomerController {
         log.info("Customer entry saved: {}", savedCustomer);
         return new ResponseEntity<>(savedCustomer, HttpStatus.CREATED);
     }
-
+//Update EMAIL NEEDS FIX! SHOULD BE ABLE TO KEEP SAME EMAIL!!!
     @PutMapping("/edit/{id}")
     @ApiOperation(value = "Edits Customer entry by ID",
             notes = "Provide an id to edit specific customer in the database",
@@ -106,7 +106,7 @@ public class CustomerController {
             @ApiResponse(code = 404, message = "The server has not found anything matching the Request-URI"),
             @ApiResponse(code = 500, message = "Server error")
     })
-    public ResponseEntity<?> editCustomerById(@PathVariable Long id, @RequestBody @Valid Customer updatedCustomer) {
+    public ResponseEntity<?> editCustomerById(@PathVariable Long id, @RequestBody @Valid  Customer updatedCustomer) {
         if (!customerService.isCustomerPresent(id)) {
             log.warn("Sorry, the customer with id " + id + " does not exist.");
             return new ResponseEntity<>("Sorry, the customer id " + id + " does not exist.", HttpStatus.NOT_FOUND);
