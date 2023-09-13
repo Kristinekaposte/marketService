@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,7 +54,6 @@ public class CustomerController {
         log.info("List size: {}", list.size());
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
-
     @GetMapping("/getById/{id}")
     @ApiOperation(value = "Find a Customer by ID",
             notes = "Returns a single Customer entry based on the provided ID",
@@ -66,6 +66,7 @@ public class CustomerController {
 
     public ResponseEntity<Customer> getCustomerById(@ApiParam(value = "id of the Customer entry", required = true)
                                                     @PathVariable("id") Long id) {
+        log.info("Received a request to get customer by ID: {}", id);
         Optional<Customer> customerOptional = customerService.findCustomerById(id);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();

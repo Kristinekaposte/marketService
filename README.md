@@ -27,3 +27,6 @@ email@email.com : password123
 email2@email.com : password123
 
 email3@email.com : password
+
+##----------------------------------------------------
+http://localhost:5050/.well-known/openid-configuration

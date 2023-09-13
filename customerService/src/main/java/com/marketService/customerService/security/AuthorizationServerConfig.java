@@ -13,11 +13,17 @@ import java.util.stream.Collectors;
 
 import com.marketService.customerService.business.exceptions.CustomAccessDeniedHandler;
 import com.marketService.customerService.security.impl.CustomUserDetailsServiceImpl;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,7 +31,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
@@ -41,6 +49,8 @@ import org.springframework.security.oauth2.server.authorization.settings.OAuth2T
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -48,13 +58,16 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 
+@Slf4j
 @Configuration
 public class AuthorizationServerConfig {
-
     @Bean
     @Order(1)
     public SecurityFilterChain authServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        log.info("Configuring authServerSecurityFilterChain...");
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         return http
                 .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
@@ -69,26 +82,47 @@ public class AuthorizationServerConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("Configuring securityFilterChain...");
         http
+                .csrf().disable()
+                .httpBasic().disable()// Disable CSRF and HTTP Basic for JWT usage
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .antMatchers("/","/api/v1/customer/save", "/api/v1/customer/getById/{id}").permitAll() // Allows unauthenticated access
-                                .antMatchers("/api/v1/customer/**").hasAuthority("USER") // Require authority for other endpoints
+                                .antMatchers("/login").permitAll()
+                                .antMatchers("/error", "/oauth2/token").permitAll()
+                                .antMatchers("/", "/api/v1/customer/save").permitAll() // Allows unauthenticated access, "/api/v1/customer/getById/{id}"
+                                .antMatchers("/api/v1/customer/**").hasAuthority("USER")
                                 .anyRequest()
                                 .authenticated()
                 )
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                .oauth2ResourceServer((resourceServer) -> resourceServer
+                        .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                // .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(withDefaults())
-                .exceptionHandling().accessDeniedHandler(accessDeniedHandler());
-        http.csrf().disable().httpBasic().disable(); // Disable CSRF and HTTP Basic for JWT usage
-
+                .exceptionHandling().accessDeniedHandler(accessDeniedHandler()
+                );
         return http.build();
     }
+
+        @Bean //  does not work without this because it cannot read authorities otherwise
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
+        grantedAuthoritiesConverter.setAuthorityPrefix("");
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+        return converter;
+    }
+
 
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return new CustomAccessDeniedHandler();
     }
-    @Bean
+
+    @Bean // need this , it allows authentication with email and password for customers !
     public UserDetailsService customUserDetailsService() {
         return new CustomUserDetailsServiceImpl();
     }
@@ -111,6 +145,7 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .authorizationGrantType(AuthorizationGrantType.JWT_BEARER)
                 .tokenSettings(tokenSettings())
                 .clientSettings(clientSettings())
                 .build();
@@ -134,22 +169,24 @@ public class AuthorizationServerConfig {
                 .build();
     }
 
-    @Bean
+    @Bean //  NECESSARY - there is default endpoints for server
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
     }
 
-    @Bean
-    public OAuth2AuthorizationService authorizationService() {
-        return new InMemoryOAuth2AuthorizationService();
-    }
 
-    @Bean
-    public OAuth2AuthorizationConsentService authorizationConsentService() {
-        return new InMemoryOAuth2AuthorizationConsentService();
-    }
+//    @Bean //  maybe not needed !
+//    public OAuth2AuthorizationService authorizationService() {
+//        return new InMemoryOAuth2AuthorizationService();
+//    }
 
-    @Bean
+//    @Bean //  maybe not needed!
+//    public OAuth2AuthorizationConsentService authorizationConsentService() {
+//        return new InMemoryOAuth2AuthorizationConsentService();
+//    }
+
+
+    @Bean  //  NECESSARY
     public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
         return context -> {
             Authentication principal = context.getPrincipal();
@@ -161,32 +198,41 @@ public class AuthorizationServerConfig {
                 Set<String> authorities = principal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
                 context.getClaims().claim("authorities", authorities)
-                        .claim("user", principal.getName());
+                        .claim("USER", principal.getName());
             }
 
         };
     }
 
-    @Bean
-    public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-    }
 
     @Bean
+    public JwtDecoder jwtDecoder() { //  NECESSARY
+        return NimbusJwtDecoder
+                .withJwkSetUri("http://localhost:5050/oauth2/jwks")
+                .jwsAlgorithm(SignatureAlgorithm.RS256).build();
+    }
+
+
+    @Bean //  NECESSARY
     public JWKSource<SecurityContext> jwkSource() {
         RSAKey rsaKey = generateRsa();
         JWKSet jwkSet = new JWKSet(rsaKey);
-        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
+        return new ImmutableJWKSet<>(jwkSet);
+        //  return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
     }
 
-    public static RSAKey generateRsa() {
+    // with help of private key authorization servers will assign tokens
+    // with help of public key the resource server will verify if the token assigned with private key if its valid or not
+    public static RSAKey generateRsa() { //  NECESSARY
+        log.info("Generating RSA key...");
         KeyPair keyPair = generateRsaKey();
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
         return new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString()).build();
     }
 
-    static KeyPair generateRsaKey() {
+    static KeyPair generateRsaKey() { //  NECESSARY
+        log.info("Generating RSA key pair...");
         KeyPair keyPair;
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");

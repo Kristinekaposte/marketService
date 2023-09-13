@@ -9,8 +9,10 @@ import com.marketService.orderService.model.Order;
 import com.marketService.orderService.model.OrderItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -29,8 +31,15 @@ public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private OrderMapper orderMapper;
-    @Autowired
+//    @Autowired
+//    private Client client;
+
     private Client client;
+
+    @Autowired
+    public OrderServiceImpl( @Lazy Client client) {
+        this.client = client;
+    }
 
     @Override
     public List<Order> getAllOrders() {
@@ -80,6 +89,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order not placed");
         return null;
     }
+
 
     /**
      * Extracts the productIds from the order's orderItems.
