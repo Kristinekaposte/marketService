@@ -1,7 +1,6 @@
 package com.marketService.orderService.web.controller;
 
 import com.marketService.orderService.business.service.OrderService;
-import com.marketService.orderService.client.Client;
 import com.marketService.orderService.model.Order;
 import com.marketService.orderService.swagger.DescriptionVariables;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -15,24 +14,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import javax.validation.Valid;
-import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Api(tags = DescriptionVariables.ORDERS)
@@ -95,9 +86,8 @@ public class OrderController {
             @ApiResponse(code = 404, message = "The server has not found anything matching the Request-URI"),
             @ApiResponse(code = 500, message = "Server error")
     })
-    public ResponseEntity<Order> placeOrder(@RequestBody  Order order) {//@Valid
+    public ResponseEntity<Order> placeOrder(@RequestBody @Valid Order order) {
         log.info("Received request to place order for customerId: {}", order.getCustomerId());
-
         Order response = orderService.placeOrder(order);
         if (response != null) {
             log.info("Order placed successfully");
@@ -113,4 +103,5 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).header(
                 "Message", "Order placement failed something went wrong. Please try again later.").build();
     }
+
 }

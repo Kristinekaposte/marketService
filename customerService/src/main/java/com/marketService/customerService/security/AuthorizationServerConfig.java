@@ -18,9 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,10 +33,6 @@ import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationConsentService;
-import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
-import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -50,6 +45,7 @@ import org.springframework.security.oauth2.server.authorization.settings.TokenSe
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtBearerTokenAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -58,25 +54,47 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 @Slf4j
 @Configuration
 public class AuthorizationServerConfig {
+//    @Bean
+//    @Order(1)
+//    public SecurityFilterChain authServerSecurityFilterChain(HttpSecurity http) throws Exception {
+//        log.info("Configuring authServerSecurityFilterChain...");
+//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+//        return http
+//                .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+//                .oidc(withDefaults())
+//                .and()
+//                .exceptionHandling(e -> e
+//                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")))
+//                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+//                .build();
+//    }
+
     @Bean
     @Order(1)
-    public SecurityFilterChain authServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        log.info("Configuring authServerSecurityFilterChain...");
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+            throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        return http
-                .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-                .oidc(withDefaults())
-                .and()
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")))
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-                .build();
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+                .oidc(Customizer.withDefaults());    // Enable OpenID Connect 1.0
+        http
+                // Redirect to the login page when not authenticated from the
+                // authorization endpoint
+                .exceptionHandling((exceptions) -> exceptions
+                        .defaultAuthenticationEntryPointFor(
+                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                        )
+                )
+                // Accept access tokens for User Info and/or Client Registration
+                .oauth2ResourceServer((resourceServer) -> resourceServer
+                        .jwt(Customizer.withDefaults()));
+
+        return http.build();
     }
 
     @Bean
@@ -96,16 +114,18 @@ public class AuthorizationServerConfig {
                                 .authenticated()
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-                .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                //    .oauth2ResourceServer((resourceServer) -> resourceServer
+                //           .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+
                 // .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .formLogin(withDefaults())
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler()
                 );
         return http.build();
     }
 
-        @Bean //  does not work without this because it cannot read authorities otherwise
+    @Bean //  does not work without this because it cannot read authorities otherwise
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         grantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
@@ -137,19 +157,19 @@ public class AuthorizationServerConfig {
         RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("client")
                 .clientSecret(passwordEncoder().encode("secret"))
-                .scope("read")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/client")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .redirectUri("http://127.0.0.1:5050/login/oauth2/code/client") // need to change for authorization enpoint ?? 5050
+                .scope(OidcScopes.OPENID)
+                .scope("read")
                 .authorizationGrantType(AuthorizationGrantType.JWT_BEARER)
                 .tokenSettings(tokenSettings())
                 .clientSettings(clientSettings())
                 .build();
 
+        //  .scope(OidcScopes.PROFILE)
+        //  .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
         return new InMemoryRegisteredClientRepository(registeredClient);
     }
 
@@ -165,7 +185,7 @@ public class AuthorizationServerConfig {
     public ClientSettings clientSettings() {
         return ClientSettings.builder()
                 .requireProofKey(false)
-                .requireAuthorizationConsent(false)
+                .requireAuthorizationConsent(true)
                 .build();
     }
 

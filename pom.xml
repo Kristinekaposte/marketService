@@ -19,6 +19,7 @@
         <module>productsService</module>
         <module>orderService</module>
         <module>customerService</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>

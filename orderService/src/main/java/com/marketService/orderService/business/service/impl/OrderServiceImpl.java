@@ -5,14 +5,17 @@ import com.marketService.orderService.business.mappers.OrderMapper;
 import com.marketService.orderService.business.repository.OrderRepository;
 import com.marketService.orderService.business.service.OrderService;
 import com.marketService.orderService.client.Client;
+import com.marketService.orderService.event.OrderPlacedEvent;
 import com.marketService.orderService.model.Order;
 import com.marketService.orderService.model.OrderItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -31,15 +34,10 @@ public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private OrderMapper orderMapper;
-//    @Autowired
-//    private Client client;
-
-    private Client client;
-
     @Autowired
-    public OrderServiceImpl( @Lazy Client client) {
-        this.client = client;
-    }
+    private Client client;
+    @Autowired
+    private KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
     @Override
     public List<Order> getAllOrders() {
@@ -79,6 +77,15 @@ public class OrderServiceImpl implements OrderService {
                     calculateOrderTotalPrice(order, orderDAO, productInfo);
                     Order savedOrder = saveOrder(orderDAO);
                     log.info("Order placed" + savedOrder);
+                    //   kafkaTemplate.send("orderNotificationTopic",new OrderPlacedEvent(order.getOrderNumber()));
+                    log.info(String.format("Order event => %s", new OrderPlacedEvent(savedOrder.getOrderNumber())));
+                    Message<OrderPlacedEvent> message =
+                            MessageBuilder.withPayload(new OrderPlacedEvent(savedOrder.getOrderNumber()))
+                                    .setHeader(KafkaHeaders.TOPIC,"orderNotificationTopic")
+                                    .build();
+                    kafkaTemplate.send(message);
+
+
                     return savedOrder;
                 } else {
                     List<Long> existingProductList = new ArrayList<>(productInfo.keySet());
