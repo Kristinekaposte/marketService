@@ -39,7 +39,6 @@ public class ResourceServerConfig {
                                 .antMatchers("/api/v1/category/**","/api/v1/products/**" ).hasAuthority("USER")
                                 .anyRequest()
                                 .authenticated()
-
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .oauth2ResourceServer((resourceServer) -> resourceServer

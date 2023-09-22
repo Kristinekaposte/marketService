@@ -59,20 +59,6 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 @Slf4j
 @Configuration
 public class AuthorizationServerConfig {
-//    @Bean
-//    @Order(1)
-//    public SecurityFilterChain authServerSecurityFilterChain(HttpSecurity http) throws Exception {
-//        log.info("Configuring authServerSecurityFilterChain...");
-//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-//        return http
-//                .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-//                .oidc(withDefaults())
-//                .and()
-//                .exceptionHandling(e -> e
-//                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")))
-//                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-//                .build();
-//    }
 
     @Bean
     @Order(1)
@@ -93,7 +79,6 @@ public class AuthorizationServerConfig {
                 // Accept access tokens for User Info and/or Client Registration
                 .oauth2ResourceServer((resourceServer) -> resourceServer
                         .jwt(Customizer.withDefaults()));
-
         return http.build();
     }
 
@@ -117,8 +102,6 @@ public class AuthorizationServerConfig {
                 //    .oauth2ResourceServer((resourceServer) -> resourceServer
                 //           .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
 
-                // .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .formLogin(withDefaults())
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler()
                 );
@@ -135,7 +118,6 @@ public class AuthorizationServerConfig {
         converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
         return converter;
     }
-
 
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
