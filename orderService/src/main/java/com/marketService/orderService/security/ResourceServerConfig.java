@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 
@@ -25,26 +27,39 @@ public class ResourceServerConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;
 
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//        log.info("Configuring SecurityFilterChain...");
+//        http.csrf().disable().httpBasic().disable()
+//                .authorizeRequests(authorizeRequests ->
+//                        authorizeRequests
+//                                .antMatchers("/login", "/", "/error","/actuator/health").permitAll()
+//                                .antMatchers("/api/v1/orders/**","/user").hasAuthority("USER")
+//                                .anyRequest()
+//                                .authenticated()
+//                )
+//                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+//                .oauth2ResourceServer((resourceServer) -> resourceServer
+//                        .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+//                .formLogin(withDefaults())
+//
+////                .oauth2Login(oauth2Login -> oauth2Login.successHandler(successHandler())
+////
+////        );
+//                .oauth2Login(withDefaults());
+//        return http.build();
+//    }
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        log.info("Configuring SecurityFilterChain...");
-        http.csrf().disable().httpBasic().disable()
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .antMatchers("/login", "/", "/error").permitAll()
-                                .antMatchers("/api/v1/orders/**","/user").hasAuthority("USER")
-                                .anyRequest()
-                                .authenticated()
+                                .anyRequest().permitAll()
                 )
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-                .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
-                .formLogin(withDefaults())
+                .csrf().disable()
+                .httpBasic().disable();
 
-//                .oauth2Login(oauth2Login -> oauth2Login.successHandler(successHandler())
-//
-//        );
-                .oauth2Login(withDefaults());
         return http.build();
     }
 
