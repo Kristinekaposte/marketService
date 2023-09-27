@@ -27,41 +27,41 @@ public class ResourceServerConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;
 
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        log.info("Configuring SecurityFilterChain...");
-//        http.csrf().disable().httpBasic().disable()
-//                .authorizeRequests(authorizeRequests ->
-//                        authorizeRequests
-//                                .antMatchers("/login", "/", "/error","/actuator/health").permitAll()
-//                                .antMatchers("/api/v1/orders/**","/user").hasAuthority("USER")
-//                                .anyRequest()
-//                                .authenticated()
-//                )
-//                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-//                .oauth2ResourceServer((resourceServer) -> resourceServer
-//                        .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
-//                .formLogin(withDefaults())
-//
-////                .oauth2Login(oauth2Login -> oauth2Login.successHandler(successHandler())
-////
-////        );
-//                .oauth2Login(withDefaults());
-//        return http.build();
-//    }
-
     @Bean
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.info("Configuring SecurityFilterChain...");
+        http.csrf().disable().httpBasic().disable()
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .anyRequest().permitAll()
+                                .antMatchers("/login", "/", "/error","/actuator/health").permitAll()
+                                .antMatchers("/api/v1/orders/**","/user").hasAuthority("USER")
+                                .anyRequest()
+                                .authenticated()
                 )
-                .csrf().disable()
-                .httpBasic().disable();
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                .oauth2ResourceServer((resourceServer) -> resourceServer
+                        .jwt().decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                .formLogin(withDefaults())
 
+//                .oauth2Login(oauth2Login -> oauth2Login.successHandler(successHandler())
+//
+//        );
+                .oauth2Login(withDefaults());
         return http.build();
     }
+
+//    @Bean
+//    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .authorizeRequests(authorizeRequests ->
+//                        authorizeRequests
+//                                .anyRequest().permitAll()
+//                )
+//                .csrf().disable()
+//                .httpBasic().disable();
+//
+//        return http.build();
+//    }
 
 //    @Bean //  to help redirect to page i wanna ??, should not be necessary
 //    public AuthenticationSuccessHandler successHandler() {
